@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 
 type Bindings = {
   GOV_API_URL: string
+  AI: any // Workers AI binding
 }
 
 type Animal = {
@@ -13,6 +14,7 @@ type Animal = {
   album_file: string
   shelter_name: string
   animal_colour: string
+  animal_sterilization: string
   [key: string]: any
 }
 
@@ -26,6 +28,7 @@ type MatchAnswers = {
 
 type ScoredAnimal = Animal & {
   matchScore: number
+  aiReason?: string
 }
 
 export const matchRoutes = new Hono<{ Bindings: Bindings }>()
@@ -61,12 +64,10 @@ function calculateScore(animal: Animal, answers: MatchAnswers): number {
   // Experience matching
   if (answers.experience === 'experienced') {
     score += 10
-    // Experienced owners can handle any animal
   } else if (answers.experience === 'some') {
     score += 5
     if (animal.animal_age === 'ADULT') score += 5
   } else if (answers.experience === 'none') {
-    // New owners better with adult, smaller animals
     if (animal.animal_age === 'ADULT') score += 10
     if (animal.animal_bodytype === 'SMALL') score += 5
     if (animal.animal_kind === '貓') score += 5
@@ -84,8 +85,54 @@ function calculateScore(animal: Animal, answers: MatchAnswers): number {
     if (animal.animal_age === 'ADULT') score += 5
   }
 
-  // Cap score at 100
   return Math.min(score, 100)
+}
+
+// Generate AI explanation for a match
+async function generateAIReason(
+  ai: any,
+  animal: Animal,
+  answers: MatchAnswers,
+  score: number
+): Promise<string> {
+  const spaceMap = { large: '大', medium: '中等', small: '小' }
+  const activityMap = { high: '高', moderate: '中等', low: '低' }
+  const expMap = { experienced: '有經驗', some: '有一些', none: '沒有' }
+  const timeMap = { plenty: '充裕', moderate: '中等', limited: '有限' }
+  const sizeMap: Record<string, string> = { BIG: '大型', MEDIUM: '中型', SMALL: '小型' }
+  const ageMap: Record<string, string> = { ADULT: '成年', CHILD: '幼年' }
+  const sexMap: Record<string, string> = { M: '男生', F: '女生', N: '未知' }
+
+  const prompt = `你是一位專業的寵物配對顧問。請用繁體中文，用溫暖親切的語氣，說明為什麼這隻動物適合這位用戶。回答限制在50字以內。
+
+用戶條件：
+- 居住空間：${spaceMap[answers.space]}
+- 活動量：${activityMap[answers.activity]}
+- 養寵物經驗：${expMap[answers.experience]}
+- 可照顧時間：${timeMap[answers.time]}
+
+動物資訊：
+- 種類：${animal.animal_kind}
+- 性別：${sexMap[animal.animal_sex] || '未知'}
+- 體型：${sizeMap[animal.animal_bodytype] || '未知'}
+- 年齡：${ageMap[animal.animal_age] || '未知'}
+- 毛色：${animal.animal_colour || '未知'}
+- 絕育：${animal.animal_sterilization === 'T' ? '已絕育' : '未絕育'}
+
+匹配度：${score}%
+
+請直接給出推薦理由，不要重複上述資訊：`
+
+  try {
+    const response = await ai.run('@cf/meta/llama-3.1-8b-instruct', {
+      prompt,
+      max_tokens: 100,
+    })
+    return response.response?.trim() || '這隻毛孩很適合你！'
+  } catch (error) {
+    console.error('AI generation error:', error)
+    return '這隻毛孩的條件與你很匹配！'
+  }
 }
 
 // POST match endpoint
@@ -113,8 +160,17 @@ matchRoutes.post('/', async (c) => {
     // Sort by score descending
     scored.sort((a, b) => b.matchScore - a.matchScore)
 
-    // Return top matches
-    const topMatches = scored.slice(0, 10)
+    // Get top 6 matches
+    const topMatches = scored.slice(0, 6)
+
+    // Generate AI reasons for top 3 matches (to save API calls)
+    if (c.env.AI) {
+      const aiPromises = topMatches.slice(0, 3).map(async (animal) => {
+        animal.aiReason = await generateAIReason(c.env.AI, animal, answers, animal.matchScore)
+        return animal
+      })
+      await Promise.all(aiPromises)
+    }
 
     return c.json({
       matches: topMatches,

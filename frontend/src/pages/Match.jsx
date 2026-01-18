@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, RotateCcw, Heart, ArrowRight } from 'lucide-react'
+import { Sparkles, RotateCcw, Heart, ArrowRight, Bot } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useAllAnimals } from '../hooks/useAnimals'
 import { submitMatch } from '../services/api'
 import QuizForm from '../components/QuizForm'
 import PetCard from '../components/PetCard'
@@ -61,14 +60,14 @@ export default function Match() {
                 AI 智慧配對
               </h1>
               <p className="text-lg text-text-secondary mb-8 max-w-lg mx-auto">
-                回答 5 個簡單問題，讓我們幫你找到最適合的毛孩夥伴！
-                配對結果將根據你的生活型態和偏好來推薦。
+                回答 5 個簡單問題，AI 會根據你的生活型態和偏好，
+                為你找到最適合的毛孩夥伴，並說明推薦理由！
               </p>
 
               <div className="flex flex-wrap justify-center gap-4 mb-8">
                 <FeatureTag icon="🏠" text="居住環境分析" />
                 <FeatureTag icon="⚡" text="活動量配對" />
-                <FeatureTag icon="🎯" text="精準推薦" />
+                <FeatureTag icon="🤖" text="AI 推薦理由" />
               </div>
 
               <Button
@@ -161,6 +160,17 @@ export default function Match() {
                         <p className="text-sm text-text-light mb-4">
                           📍 {result.topMatch.shelter_name || '收容所'}
                         </p>
+
+                        {/* AI 推薦理由 */}
+                        {result.topMatch.aiReason && (
+                          <div className="bg-white/80 rounded-xl p-3 mb-4 border border-primary/20">
+                            <p className="text-sm text-text-secondary flex items-start gap-2">
+                              <span className="text-primary">✨</span>
+                              <span className="italic">{result.topMatch.aiReason}</span>
+                            </p>
+                          </div>
+                        )}
+
                         <Button
                           variant="primary"
                           icon={Heart}
