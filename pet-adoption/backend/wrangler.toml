@@ -1,0 +1,22 @@
+name = "pet-adoption-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+GOV_API_URL = "https://data.moa.gov.tw/Service/OpenData/TransService.aspx?UnitId=QcbUEzN6E6DL"
+
+# KV Namespace for caching (create with: wrangler kv:namespace create "CACHE")
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "your-kv-namespace-id"
+
+# KV Namespace for image caching (create with: wrangler kv:namespace create "IMAGES")
+# [[kv_namespaces]]
+# binding = "IMAGES"
+# id = "your-images-kv-namespace-id"
+
+# D1 Database (create with: wrangler d1 create pet-adoption-db)
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "pet-adoption-db"
+# database_id = "your-d1-database-id"

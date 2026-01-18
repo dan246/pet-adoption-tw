@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-text-primary font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-primary text-white rounded-full font-medium
+           shadow-soft hover:shadow-glow hover:scale-105
+           transition-all duration-300 ease-out;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-secondary text-text-primary rounded-full font-medium
+           shadow-soft hover:shadow-glow-secondary hover:scale-105
+           transition-all duration-300 ease-out;
+  }
+
+  .btn-outline {
+    @apply px-6 py-3 border-2 border-primary text-primary rounded-full font-medium
+           hover:bg-primary hover:text-white
+           transition-all duration-300 ease-out;
+  }
+
+  .card {
+    @apply bg-white rounded-3xl shadow-soft p-6
+           hover:shadow-soft-lg hover:-translate-y-1
+           transition-all duration-300 ease-out;
+  }
+
+  .card-interactive {
+    @apply card cursor-pointer hover:scale-[1.02];
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-2xl border-2 border-warm-beige
+           bg-white text-text-primary placeholder-text-light
+           focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20
+           transition-all duration-200;
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl font-display font-bold text-text-primary
+           mb-2;
+  }
+
+  .section-subtitle {
+    @apply text-lg text-text-secondary mb-8;
+  }
+
+  .gradient-bg {
+    @apply bg-gradient-to-br from-primary/10 via-background to-secondary/10;
+  }
+
+  .glass {
+    @apply bg-white/70 backdrop-blur-md;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Leaflet map custom styles */
+.leaflet-container {
+  @apply rounded-3xl;
+  font-family: 'Noto Sans TC', sans-serif;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply rounded-2xl shadow-soft-lg;
+}
+
+.leaflet-popup-content {
+  @apply m-0 p-4;
+}
+
+/* Custom scrollbar for non-hidden elements */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-warm-beige rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/40 rounded-full hover:bg-primary/60;
+}
+
+/* Fortune card flip animation */
+.flip-card {
+  perspective: 1000px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+/* Loading skeleton animation */
+.skeleton {
+  @apply bg-gradient-to-r from-warm-beige via-white to-warm-beige bg-[length:200%_100%];
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
