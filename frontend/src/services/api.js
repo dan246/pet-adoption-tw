@@ -1,5 +1,5 @@
 const API_BASE = import.meta.env.PROD
-  ? 'https://pet-adoption-api.your-subdomain.workers.dev'
+  ? 'https://pet-adoption-tw-backend.sky328423.workers.dev'
   : '/api'
 
 // Government API direct access for development
