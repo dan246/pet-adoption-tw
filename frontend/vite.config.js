@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  base: mode === 'production' ? '/pet-adoption/' : '/',
+  base: '/',
   server: {
     port: 3000,
     proxy: {
