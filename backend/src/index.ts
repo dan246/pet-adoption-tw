@@ -30,15 +30,22 @@ app.get('/', (c) => {
   })
 })
 
-// API routes
+// API routes (with /api prefix)
 app.route('/api/animals', animalsRoutes)
 app.route('/api/shelters', sheltersRoutes)
 app.route('/api/fortune', fortuneRoutes)
 app.route('/api/match', matchRoutes)
 app.route('/api/images', imagesRoutes)
 
+// Also mount without /api prefix for direct access
+app.route('/images', imagesRoutes)
+app.route('/animals', animalsRoutes)
+app.route('/shelters', sheltersRoutes)
+app.route('/fortune', fortuneRoutes)
+app.route('/match', matchRoutes)
+
 // Stats endpoint
-app.get('/api/stats', async (c) => {
+const statsHandler = async (c: any) => {
   try {
     const govUrl = c.env.GOV_API_URL || 'https://data.moa.gov.tw/Service/OpenData/TransService.aspx?UnitId=QcbUEzN6E6DL'
     const response = await fetch(govUrl)
@@ -57,6 +64,9 @@ app.get('/api/stats', async (c) => {
   } catch (error) {
     return c.json({ error: 'Failed to fetch stats' }, 500)
   }
-})
+}
+
+app.get('/api/stats', statsHandler)
+app.get('/stats', statsHandler)
 
 export default app
