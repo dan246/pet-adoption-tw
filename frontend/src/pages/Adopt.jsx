@@ -1,14 +1,14 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useAllAnimals } from '../hooks/useAnimals'
 import PetCard, { PetCardCompact } from '../components/PetCard'
 import PetModal from '../components/PetModal'
 import FilterBar from '../components/FilterBar'
 import { PetCardSkeleton } from '../components/ui/Skeleton'
-import { Button } from '../components/ui'
+import { Button, Pagination } from '../components/ui'
 import { RefreshCw, Frown } from 'lucide-react'
 
-const ITEMS_PER_PAGE = 20
+const ITEMS_PER_PAGE = 24
 
 // Fisher-Yates shuffle with seed for consistent randomization per session
 function seededShuffle(array, seed) {
@@ -35,7 +35,7 @@ export default function Adopt() {
   const [filters, setFilters] = useState({})
   const [viewMode, setViewMode] = useState('grid')
   const [selectedAnimal, setSelectedAnimal] = useState(null)
-  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE)
+  const [currentPage, setCurrentPage] = useState(1)
 
   // Generate a random seed once per session (stored in sessionStorage)
   const sessionSeed = useRef(() => {
@@ -75,37 +75,24 @@ export default function Adopt() {
     return seededShuffle(result, sessionSeed.current())
   }, [allAnimals, filters])
 
-  // Visible animals for infinite scroll
-  const visibleAnimals = useMemo(() => {
-    return filteredAnimals.slice(0, visibleCount)
-  }, [filteredAnimals, visibleCount])
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredAnimals.length / ITEMS_PER_PAGE)
 
-  const hasMore = visibleCount < filteredAnimals.length
+  // Get animals for current page
+  const paginatedAnimals = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredAnimals.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  }, [filteredAnimals, currentPage])
 
-  // Reset visible count when filters change
+  // Reset to page 1 when filters change
   useEffect(() => {
-    setVisibleCount(ITEMS_PER_PAGE)
+    setCurrentPage(1)
   }, [filters])
 
-  // Infinite scroll handler
-  const handleScroll = useCallback(() => {
-    if (
-      window.innerHeight + document.documentElement.scrollTop >=
-      document.documentElement.offsetHeight - 1000
-    ) {
-      if (hasMore) {
-        setVisibleCount(prev => prev + ITEMS_PER_PAGE)
-      }
-    }
-  }, [hasMore])
-
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [handleScroll])
-
-  const loadMore = () => {
-    setVisibleCount(prev => prev + ITEMS_PER_PAGE)
+  // Handle page change - scroll to top
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
@@ -195,22 +182,22 @@ export default function Adopt() {
         )}
 
         {/* Animals Grid */}
-        {!isLoading && !error && visibleAnimals.length > 0 && (
+        {!isLoading && !error && paginatedAnimals.length > 0 && (
           <>
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {visibleAnimals.map((animal, index) => (
+                {paginatedAnimals.map((animal, index) => (
                   <PetCard
                     key={animal.animal_id}
                     animal={animal}
-                    index={index % ITEMS_PER_PAGE}
+                    index={index}
                     onClick={setSelectedAnimal}
                   />
                 ))}
               </div>
             ) : (
               <div className="space-y-3">
-                {visibleAnimals.map((animal) => (
+                {paginatedAnimals.map((animal) => (
                   <PetCardCompact
                     key={animal.animal_id}
                     animal={animal}
@@ -220,29 +207,18 @@ export default function Adopt() {
               </div>
             )}
 
-            {/* Load More */}
-            {hasMore && (
-              <div className="text-center mt-8">
-                <Button
-                  variant="outline"
-                  onClick={loadMore}
-                  icon={RefreshCw}
-                >
-                  載入更多 ({filteredAnimals.length - visibleCount} 隻)
-                </Button>
-              </div>
-            )}
-
-            {/* End of List */}
-            {!hasMore && visibleAnimals.length > 0 && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center mt-8 text-text-light"
-              >
-                已顯示全部 {filteredAnimals.length} 隻毛孩 🐾
-              </motion.p>
-            )}
+            {/* Pagination */}
+            <div className="mt-8">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                siblingCount={2}
+              />
+              <p className="text-center mt-4 text-sm text-text-light">
+                第 {currentPage} 頁，共 {totalPages} 頁（{filteredAnimals.length} 隻毛孩）
+              </p>
+            </div>
           </>
         )}
       </div>
