@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, RotateCcw, Heart, ArrowRight, Bot } from 'lucide-react'
+import { Sparkles, RotateCcw, Heart, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { submitMatch } from '../services/api'
 import QuizForm from '../components/QuizForm'
@@ -9,7 +9,6 @@ import PetModal from '../components/PetModal'
 import { Card, Button, Badge } from '../components/ui'
 
 export default function Match() {
-  const { data: animals } = useAllAnimals()
   const [stage, setStage] = useState('intro') // intro, quiz, result
   const [result, setResult] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
